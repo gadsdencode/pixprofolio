@@ -17,21 +17,29 @@ import Register from "@/pages/Register";
 // Protected route component
 function ProtectedRoute({ component: Component }: { component: any }) {
   const [, setLocation] = useLocation();
-  const { data: authStatus, isLoading } = useQuery<{authenticated: boolean; user?: any}>({
+  const { data: authStatus, isLoading, error } = useQuery<{authenticated: boolean; user?: any}>({
     queryKey: ["/api/auth/status"],
+    retry: 1,
+    refetchOnWindowFocus: true,
   });
 
   useEffect(() => {
-    if (!isLoading && !authStatus?.authenticated) {
+    // Only redirect to login if we've finished loading and user is not authenticated
+    if (!isLoading && !error && !authStatus?.authenticated) {
       setLocation("/login");
     }
-  }, [authStatus, isLoading, setLocation]);
+  }, [authStatus, isLoading, error, setLocation]);
 
   if (isLoading) {
-    return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
+    return <div className="flex justify-center items-center min-h-screen">
+      <div className="text-center">
+        <div className="mb-4">Loading...</div>
+      </div>
+    </div>;
   }
 
-  if (!authStatus?.authenticated) {
+  if (error || !authStatus?.authenticated) {
+    // This shouldn't be shown as we redirect in useEffect, but just in case
     return null;
   }
 
