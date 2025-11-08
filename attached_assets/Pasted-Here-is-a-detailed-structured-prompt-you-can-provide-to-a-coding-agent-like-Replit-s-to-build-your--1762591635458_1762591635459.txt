@@ -1,0 +1,99 @@
+Here is a detailed, structured prompt you can provide to a coding agent like Replit's to build your photographer portfolio application.
+
+---
+
+### **Replit Agent Prompt: Photographer Portfolio & Invoicing App**
+
+**1. Project Goal:**
+Create a modern, fully responsive "Photographer's Portfolio & Client Management" website. The site will serve as a beautiful gallery to showcase work, a lead-capture form for new projects, and a simple dashboard for the photographer to create and send Stripe invoices for completed projects.
+
+**2. Core Tech Stack:**
+* **Vite:** Initialize the project using Vite for a fast React development environment.
+* **React:** Use functional components, React Hooks (`useState`, `useEffect`), and Context API (if needed for theme or auth).
+* **React Router (`react-router-dom`):** For multi-page navigation.
+* **TailwindCSS:** For all styling. Ensure it's set up correctly within the Vite project.
+* **shadcn/ui:** This is the primary UI library. Please set it up and use its components for all UI elements (Buttons, Cards, Forms, Tables, Dialogs, etc.).
+* **Stripe API:** Specifically for creating Customers, Products, and Invoices.
+
+**3. Site Structure & Page Breakdown:**
+
+Please create the following pages with `react-router-dom`:
+
+* **`/` (Home Page):**
+    * **UI:** A stunning, full-screen hero image (use a high-quality placeholder: `https://placehold.co/1920x1080/000000/FFFFFF?text=Hero+Image`).
+    * **Content:** A centered headline (e.g., "Capturing Moments, Creating Art") and a brief intro paragraph.
+    * **CTA:** Two shadcn `Button` components: "View Portfolio" (links to `/portfolio`) and "Book Now" (links to `/contact`).
+
+* **`/portfolio` (Portfolio Gallery Page):**
+    * **UI:** A responsive grid layout (e.g., `grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4`).
+    * **Components:** Use shadcn `Card` for each portfolio item. Each `Card` should contain:
+        * `CardHeader`: An image (use `https://placehold.co/600x400/333/FFF?text=Portfolio+Item+{n}`).
+        * `CardContent`: A `CardTitle` (e.g., "Sunset Wedding") and `CardDescription` (e.g., "Portraits • Travel").
+    * **Data:** Use a mock JSON array to populate this gallery.
+    * **Filtering (Optional but preferred):** Add shadcn `Tabs` at the top to filter by category (e.g., "All," "Weddings," "Portraits," "Landscape").
+
+* **`/about` (About Me Page):**
+    * **UI:** A simple two-column layout on desktop.
+    * **Left Column:** An image of the photographer (use `https://placehold.co/400x400/555/FFF?text=Photographer`).
+    * **Right Column:** A headline ("About Me") and several paragraphs of biographical text.
+
+* **`/contact` (Contact/Booking Page):**
+    * **UI:** A clean, centered form.
+    * **Form:** Build this using shadcn `Form`, `Input`, `Select`, `Textarea`, and `Button` components.
+    * **Fields:**
+        * Full Name (`Input`)
+        * Email Address (`Input` type `email`)
+        * Project Type (`Select` with options: "Wedding," "Portrait," "Event," "Commercial")
+        * Desired Date (`Input` type `date` or use shadcn `Calendar` with `Popover`)
+        * Message (`Textarea`)
+        * Submit Button (`Button`)
+    * **Functionality:** On submit, just log the form data to the console and show a success message using a shadcn `Dialog` or `Toast` (e.g., "Thank you! I'll be in touch soon.").
+
+* **`/admin` (Admin Invoicing Dashboard):**
+    * **Note:** This page is for the photographer *only*. For this prompt, do not build a login system. Assume the user is authenticated.
+    * **UI:** A simple dashboard layout.
+    * **Feature 1: "Create Invoice" Form:**
+        * **Fields:** Client Name (`Input`), Client Email (`Input`), Service Description (`Textarea`), Amount (USD) (`Input` type `number`).
+        * **Button:** "Generate Stripe Invoice" (`Button`).
+    * **Feature 2: "Recent Invoices" Table:**
+        * **UI:** Use a shadcn `Table` component.
+        * **Columns:** Invoice ID, Client Name, Amount, Status (Paid/Sent/Draft), Date.
+        * **Data:** Populate with mock data.
+
+**4. Key Functionality: Stripe Invoicing**
+
+This is the most complex part. Please wire up the "Generate Stripe Invoice" button on the `/admin` page.
+
+* **Workflow:**
+    1.  When the photographer fills out the form and clicks "Generate," the app should (conceptually) make a call to a backend.
+    2.  **Since we are in a frontend-only environment, please *mock* this behavior.**
+    3.  Create an `async` function `handleCreateInvoice`.
+    4.  Inside this function, `console.log` the form data (Client Name, Email, Amount, etc.).
+    5.  Simulate a delay (e.g., `await new Promise(res => setTimeout(res, 1000))`).
+    6.  After the "loading" state, show a shadcn `Dialog` box.
+    7.  **Inside the Dialog:**
+        * Title: "Invoice Generated"
+        * Description: "Your Stripe invoice has been created and sent to the client."
+        * Content: Display a *fake* but realistic-looking Stripe invoice URL (e.g., `https://invoice.stripe.com/i/acct_.../test_...`).
+        * Button: "Close."
+
+* **Note for the agent:** If you *are* able to use the Stripe Node.js library, please set up a basic serverless function (if Replit supports it) to:
+    1.  Create a `Customer` (with `name` and `email`).
+    2.  Create a `Product` (with `name` = Service Description).
+    3.  Create a `Price` (with `unit_amount` = Amount * 100, `currency` = "usd").
+    4.  Create an `Invoice` (with `customer` ID, `collection_method` = "send_invoice", `days_until_due` = 30).
+    5.  Finalize the invoice and return the `hosted_invoice_url`. This URL would then be shown in the `Dialog`.
+    *If this is too complex, the mocked behavior is perfectly acceptable.*
+
+**5. Styling and General UI:**
+* **Theme:** Please use the `dark` theme for shadcn/ui.
+* **Layout:** Create a main `Layout.jsx` component that includes a persistent **Navbar** and **Footer**. The router's `<Outlet />` should render the page content between them.
+* **Navbar:**
+    * Left side: "Photographer's Name" (as a logo/brand).
+    * Right side: Links to "Home," "Portfolio," "About," and "Contact."
+* **Footer:**
+    * Simple, with "© 2025 [Photographer's Name]" and small icons for social media (just use placeholder text if icons are hard).
+
+Please build this out step-by-step, starting with the file structure and routing, then building each page with its shadcn components, and finally wiring up the mock invoicing functionality.
+
+---
