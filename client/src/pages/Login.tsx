@@ -46,20 +46,20 @@ export default function Login() {
 
       const result = await response.json();
 
-      if (result.success) {
+      if (response.ok && result.success) {
         toast({
           title: "Welcome back!",
           description: "You have successfully logged in.",
         });
         
-        // Invalidate auth status and redirect
+        // Force refresh auth status and wait for it to complete
         await queryClient.invalidateQueries({ queryKey: ["/api/auth/status"] });
-        await queryClient.invalidateQueries({ queryKey: ["/api/invoices"] });
+        await queryClient.refetchQueries({ queryKey: ["/api/auth/status"] });
         
-        // Redirect to admin dashboard
+        // Small delay to ensure state updates
         setTimeout(() => {
-          setLocation("/admin");
-        }, 500);
+          window.location.href = "/admin"; // Use hard navigation to ensure clean state
+        }, 100);
       } else {
         toast({
           title: "Login failed",
