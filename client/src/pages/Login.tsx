@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -10,6 +11,7 @@ import { Link, useLocation } from "wouter";
 import { z } from "zod";
 import { useState } from "react";
 import { Loader2, Mail, Lock } from "lucide-react";
+import { SiGoogle } from "react-icons/si";
 import { queryClient } from "@/lib/queryClient";
 
 const loginSchema = z.object({
@@ -23,6 +25,7 @@ export default function Login() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const [isLoading, setIsLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -77,6 +80,12 @@ export default function Login() {
     }
   };
 
+  const handleGoogleLogin = () => {
+    setIsGoogleLoading(true);
+    // Google OAuth is handled by redirect to backend endpoint
+    window.location.href = "/api/auth/google";
+  };
+
   return (
     <Layout>
       <div className="min-h-[calc(100vh-8rem)] flex items-center justify-center py-16">
@@ -87,7 +96,40 @@ export default function Login() {
               Sign in to access your admin dashboard
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4">
+            {/* Google Sign In */}
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={handleGoogleLogin}
+              disabled={isGoogleLoading || isLoading}
+              data-testid="button-google-login"
+            >
+              {isGoogleLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Connecting to Google...
+                </>
+              ) : (
+                <>
+                  <SiGoogle className="mr-2 h-4 w-4" />
+                  Continue with Google
+                </>
+              )}
+            </Button>
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <Separator className="w-full" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">
+                  Or continue with email
+                </span>
+              </div>
+            </div>
+
+            {/* Email/Password Form */}
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 <FormField
@@ -104,6 +146,7 @@ export default function Login() {
                             placeholder="Enter your email" 
                             className="pl-10 bg-background/50" 
                             {...field} 
+                            disabled={isLoading || isGoogleLoading}
                             data-testid="input-email"
                           />
                         </div>
@@ -127,6 +170,7 @@ export default function Login() {
                             placeholder="Enter your password" 
                             className="pl-10 bg-background/50" 
                             {...field} 
+                            disabled={isLoading || isGoogleLoading}
                             data-testid="input-password"
                           />
                         </div>
@@ -139,7 +183,7 @@ export default function Login() {
                 <Button 
                   type="submit" 
                   className="w-full" 
-                  disabled={isLoading}
+                  disabled={isLoading || isGoogleLoading}
                   data-testid="button-login"
                 >
                   {isLoading ? (
@@ -148,7 +192,7 @@ export default function Login() {
                       Signing in...
                     </>
                   ) : (
-                    "Sign In"
+                    "Sign In with Email"
                   )}
                 </Button>
               </form>

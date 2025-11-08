@@ -57,6 +57,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         email,
         password: hashedPassword,
         role: "admin",
+        provider: "local",
       });
 
       res.json({ 
@@ -147,12 +148,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
           id: (req.user as any).id,
           email: (req.user as any).email,
           name: (req.user as any).name,
+          provider: (req.user as any).provider,
+          profilePicture: (req.user as any).profilePicture,
         }
       });
     } else {
       res.json({ authenticated: false });
     }
   });
+
+  // Google OAuth routes
+  app.get("/api/auth/google", 
+    passport.authenticate("google", { scope: ["profile", "email"] })
+  );
+
+  app.get("/api/auth/google/callback",
+    passport.authenticate("google", { failureRedirect: "/login" }),
+    (req, res) => {
+      // Successful authentication, redirect to admin
+      res.redirect("/admin");
+    }
+  );
 
   // Stripe invoice creation endpoint (protected)
   app.post("/api/create-invoice", isAuthenticated, async (req, res) => {
