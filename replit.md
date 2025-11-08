@@ -6,6 +6,7 @@ This is a modern photographer portfolio and client management web application bu
 
 ## Recent Changes (November 8, 2025)
 
+### Initial Portfolio Website Build
 - Built complete photographer portfolio website with 5 main pages (Home, Portfolio, About, Contact, Admin)
 - Integrated real Stripe API for invoice creation and management
 - Created PostgreSQL database with 4 tables: clients, invoices, portfolio_items, contact_inquiries
@@ -16,6 +17,16 @@ This is a modern photographer portfolio and client management web application bu
 - Added complete invoice workflow: customer creation, invoice generation, finalization, and email delivery
 - Added "Realtor/Home Photography" as a new portfolio category
 - Tested end-to-end invoice creation flow with Stripe test mode
+
+### Authentication System Refactor (Completed)
+- **Google OAuth Integration**: Added Google OAuth 2.0 authentication alongside existing email/password login
+- **Auth Context**: Created centralized AuthContext for global authentication state management
+- **Protected Routes**: Implemented ProtectedRoute component with role-based access control
+- **Security Enhancement**: New OAuth users receive 'client' role by default (not admin) for security
+- **User Profile Display**: Added user profile section in admin dashboard showing name, email, provider, and logout
+- **Session Management**: Passport.js with PostgreSQL session storage for persistent authentication
+- **Error Handling**: Comprehensive error handling for failed logins, OAuth failures, and session issues
+- **Database Updates**: Extended users table with OAuth fields (provider, providerId, profilePicture)
 
 ## User Preferences
 
