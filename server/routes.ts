@@ -148,6 +148,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           id: (req.user as any).id,
           email: (req.user as any).email,
           name: (req.user as any).name,
+          role: (req.user as any).role,
           provider: (req.user as any).provider,
           profilePicture: (req.user as any).profilePicture,
         }
