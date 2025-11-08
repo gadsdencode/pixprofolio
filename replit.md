@@ -8,10 +8,13 @@ This is a modern photographer portfolio and client management web application bu
 
 - Built complete photographer portfolio website with 5 main pages (Home, Portfolio, About, Contact, Admin)
 - Integrated real Stripe API for invoice creation and management
+- Created PostgreSQL database with 4 tables: clients, invoices, portfolio_items, contact_inquiries
+- Implemented full database persistence for all invoice and contact form data
 - Created beautiful dark-themed UI with Inter, Playfair Display, and JetBrains Mono fonts
 - Generated custom photography images for portfolio and hero sections
 - Implemented responsive navigation with mobile menu support
 - Added complete invoice workflow: customer creation, invoice generation, finalization, and email delivery
+- Added "Realtor/Home Photography" as a new portfolio category
 - Tested end-to-end invoice creation flow with Stripe test mode
 
 ## User Preferences

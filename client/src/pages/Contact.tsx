@@ -137,6 +137,7 @@ export default function Contact() {
                             <SelectItem value="portrait">Portrait</SelectItem>
                             <SelectItem value="event">Event</SelectItem>
                             <SelectItem value="commercial">Commercial</SelectItem>
+                            <SelectItem value="realtor">Realtor/Home Photography</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />

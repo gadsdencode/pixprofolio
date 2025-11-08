@@ -69,7 +69,7 @@ export type InsertInvoice = z.infer<typeof insertInvoiceSchema>;
 export const portfolioItems = pgTable("portfolio_items", {
   id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
   title: text("title").notNull(),
-  category: text("category").notNull(), // Weddings, Portraits, Landscape, Events, Commercial
+  category: text("category").notNull(), // Weddings, Portraits, Landscape, Events, Commercial, Realtor/Home Photography
   description: text("description").notNull(),
   imageUrl: text("image_url").notNull(),
   featured: integer("featured").notNull().default(0), // 0 = not featured, 1 = featured
@@ -94,7 +94,7 @@ export const contactInquiries = pgTable("contact_inquiries", {
   id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
   fullName: text("full_name").notNull(),
   email: text("email").notNull(),
-  projectType: text("project_type").notNull(), // wedding, portrait, event, commercial
+  projectType: text("project_type").notNull(), // wedding, portrait, event, commercial, realtor
   desiredDate: text("desired_date").notNull(),
   message: text("message").notNull(),
   status: text("status").notNull().default("new"), // new, contacted, converted, closed

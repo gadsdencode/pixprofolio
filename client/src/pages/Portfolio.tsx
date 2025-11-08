@@ -8,6 +8,7 @@ import portraitImage from "@assets/generated_images/Professional_portrait_headsh
 import landscapeImage from "@assets/generated_images/Mountain_lake_reflection_dawn_85a793e7.png";
 import eventImage from "@assets/generated_images/Elegant_gala_dinner_event_528eb786.png";
 import commercialImage from "@assets/generated_images/Luxury_watch_product_photography_8a6651e0.png";
+import realtorImage from "@assets/generated_images/Modern_luxury_home_exterior_d6469a58.png";
 
 const portfolioItems = [
   {
@@ -52,6 +53,20 @@ const portfolioItems = [
     description: "Beach wedding ceremony",
     image: weddingImage,
   },
+  {
+    id: 7,
+    title: "Modern Dream Home",
+    category: "Realtor/Home Photography",
+    description: "Luxury residential property listing",
+    image: realtorImage,
+  },
+  {
+    id: 8,
+    title: "Architectural Elegance",
+    category: "Realtor/Home Photography",
+    description: "Contemporary home exterior showcase",
+    image: realtorImage,
+  },
 ];
 
 export default function Portfolio() {
@@ -62,7 +77,7 @@ export default function Portfolio() {
       ? portfolioItems
       : portfolioItems.filter((item) => item.category === selectedCategory);
 
-  const categories = ["All", "Weddings", "Portraits", "Landscape", "Events", "Commercial"];
+  const categories = ["All", "Weddings", "Portraits", "Landscape", "Events", "Commercial", "Realtor/Home Photography"];
 
   return (
     <Layout>
