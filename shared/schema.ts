@@ -4,26 +4,35 @@ import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
 
-// Users table for authentication
+// Users table for authentication (supports both local and OAuth)
 export const users = pgTable("users", {
   id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
   email: text("email").notNull().unique(),
-  password: text("password").notNull(), // Hashed password
+  password: text("password"), // Hashed password (optional for OAuth users)
   name: text("name").notNull(),
   role: text("role").notNull().default("admin"), // admin, photographer
+  provider: text("provider").notNull().default("local"), // local, google
+  providerId: text("provider_id"), // OAuth provider's user ID
+  profilePicture: text("profile_picture"), // URL to profile picture
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 export const insertUserSchema = createInsertSchema(users, {
   email: z.string().email("Please enter a valid email address"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
+  password: z.string().min(8, "Password must be at least 8 characters").optional(),
   name: z.string().min(2, "Name must be at least 2 characters"),
+  provider: z.string().optional(),
+  providerId: z.string().optional(),
+  profilePicture: z.string().optional(),
 }).pick({
   email: true,
   password: true,
   name: true,
   role: true,
+  provider: true,
+  providerId: true,
+  profilePicture: true,
 });
 
 export type User = typeof users.$inferSelect;

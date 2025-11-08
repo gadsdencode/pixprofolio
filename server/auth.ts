@@ -19,6 +19,11 @@ passport.use(
           return done(null, false, { message: "Invalid email or password" });
         }
 
+        // OAuth users don't have passwords
+        if (!user.password) {
+          return done(null, false, { message: "Please use Google login for this account" });
+        }
+
         const isValidPassword = await bcrypt.compare(password, user.password);
         
         if (!isValidPassword) {
