@@ -10,6 +10,7 @@ import { Link, useLocation } from "wouter";
 import { z } from "zod";
 import { useState } from "react";
 import { Loader2, Mail, Lock } from "lucide-react";
+import { queryClient } from "@/lib/queryClient";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -50,6 +51,10 @@ export default function Login() {
           title: "Welcome back!",
           description: "You have successfully logged in.",
         });
+        
+        // Invalidate auth status and redirect
+        await queryClient.invalidateQueries({ queryKey: ["/api/auth/status"] });
+        await queryClient.invalidateQueries({ queryKey: ["/api/invoices"] });
         
         // Redirect to admin dashboard
         setTimeout(() => {
