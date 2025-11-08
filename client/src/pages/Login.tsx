@@ -9,10 +9,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Link, useLocation } from "wouter";
 import { z } from "zod";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Loader2, Mail, Lock } from "lucide-react";
 import { SiGoogle } from "react-icons/si";
-import { queryClient } from "@/lib/queryClient";
+import { useAuth } from "@/contexts/AuthContext";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -24,8 +24,16 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 export default function Login() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
+  const { isAuthenticated, refetchAuth } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      setLocation("/admin");
+    }
+  }, [isAuthenticated, setLocation]);
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -56,8 +64,8 @@ export default function Login() {
           description: "You have successfully logged in.",
         });
         
-        // Invalidate auth queries to get fresh authentication status
-        await queryClient.invalidateQueries({ queryKey: ["/api/auth/status"] });
+        // Refetch auth status through context
+        await refetchAuth();
         
         // Use wouter's setLocation for SPA navigation
         setLocation("/admin");

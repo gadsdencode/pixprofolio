@@ -7,12 +7,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { useState, useEffect } from "react";
-import { Loader2 } from "lucide-react";
+import { useState } from "react";
+import { Loader2, LogOut, User } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "@/contexts/AuthContext";
 
 const invoiceFormSchema = z.object({
   clientName: z.string().min(2, "Client name must be at least 2 characters"),
@@ -36,6 +38,7 @@ interface InvoiceData {
 }
 
 export default function Admin() {
+  const { user, logout } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [invoiceUrl, setInvoiceUrl] = useState("");
@@ -109,12 +112,45 @@ export default function Admin() {
       <div className="py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-4 md:px-8">
           <div className="mb-12">
-            <h1 className="font-serif text-4xl md:text-5xl font-medium mb-4" data-testid="text-admin-title">
-              Invoice Dashboard
-            </h1>
-            <p className="text-lg text-muted-foreground">
-              Create and manage invoices for your photography projects.
-            </p>
+            {/* User Profile Section */}
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <h1 className="font-serif text-4xl md:text-5xl font-medium mb-4" data-testid="text-admin-title">
+                  Invoice Dashboard
+                </h1>
+                <p className="text-lg text-muted-foreground">
+                  Create and manage invoices for your photography projects.
+                </p>
+              </div>
+              <Card className="p-4">
+                <div className="flex items-center gap-4">
+                  <Avatar className="h-10 w-10">
+                    <AvatarImage src={user?.profilePicture || undefined} alt={user?.name} />
+                    <AvatarFallback>
+                      <User className="h-5 w-5" />
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex flex-col">
+                    <p className="text-sm font-medium">{user?.name}</p>
+                    <p className="text-xs text-muted-foreground">{user?.email}</p>
+                    {user?.provider === "google" && (
+                      <Badge variant="secondary" className="w-fit mt-1">
+                        Google
+                      </Badge>
+                    )}
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={logout}
+                    data-testid="button-logout"
+                    title="Logout"
+                  >
+                    <LogOut className="h-4 w-4" />
+                  </Button>
+                </div>
+              </Card>
+            </div>
           </div>
 
           <div className="grid gap-8">
