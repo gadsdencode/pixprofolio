@@ -33,9 +33,11 @@ export default function Login() {
   });
 
   const onSubmit = async (data: LoginFormValues) => {
+    console.log("LOGIN: Starting login process...");
     setIsLoading(true);
     
     try {
+      console.log("LOGIN: Sending request to /api/login");
       const response = await fetch("/api/login", {
         method: "POST",
         headers: {
@@ -45,23 +47,31 @@ export default function Login() {
         body: JSON.stringify(data),
       });
 
+      console.log("LOGIN: Response received", { ok: response.ok, status: response.status });
       const result = await response.json();
+      console.log("LOGIN: Response JSON", result);
 
       if (response.ok && result.success) {
+        console.log("LOGIN: Success! Showing toast...");
         toast({
           title: "Welcome back!",
           description: "You have successfully logged in.",
         });
         
+        console.log("LOGIN: Invalidating auth queries...");
         // Force refresh auth status and wait for it to complete
         await queryClient.invalidateQueries({ queryKey: ["/api/auth/status"] });
         await queryClient.refetchQueries({ queryKey: ["/api/auth/status"] });
         
+        console.log("LOGIN: Setting timeout for redirect...");
         // Small delay to ensure state updates
         setTimeout(() => {
+          console.log("LOGIN: ATTEMPTING REDIRECT TO /admin");
           window.location.href = "/admin"; // Use hard navigation to ensure clean state
+          console.log("LOGIN: window.location.href = '/admin' executed");
         }, 100);
       } else {
+        console.log("LOGIN: Failed", { responseOk: response.ok, resultSuccess: result.success });
         toast({
           title: "Login failed",
           description: result.error || "Invalid email or password.",
@@ -69,13 +79,14 @@ export default function Login() {
         });
       }
     } catch (error) {
-      console.error("Error during login:", error);
+      console.error("LOGIN: Error during login:", error);
       toast({
         title: "Error",
         description: "Failed to login. Please try again.",
         variant: "destructive",
       });
     } finally {
+      console.log("LOGIN: Setting isLoading to false");
       setIsLoading(false);
     }
   };
