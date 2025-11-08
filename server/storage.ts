@@ -1,2 +1,169 @@
-// Storage is not needed for this application
-export const storage = {};
+import { 
+  clients, 
+  invoices, 
+  portfolioItems, 
+  contactInquiries,
+  type Client, 
+  type InsertClient,
+  type Invoice,
+  type InsertInvoice,
+  type PortfolioItem,
+  type InsertPortfolioItem,
+  type ContactInquiry,
+  type InsertContactInquiry,
+} from "@shared/schema";
+import { db } from "./db";
+import { eq, desc } from "drizzle-orm";
+
+export interface IStorage {
+  // Client operations
+  getClient(id: number): Promise<Client | undefined>;
+  getClientByEmail(email: string): Promise<Client | undefined>;
+  createClient(client: InsertClient): Promise<Client>;
+  updateClientStripeId(id: number, stripeCustomerId: string): Promise<Client>;
+
+  // Invoice operations
+  getInvoice(id: number): Promise<Invoice | undefined>;
+  getInvoicesByClientId(clientId: number): Promise<Invoice[]>;
+  getAllInvoices(): Promise<Invoice[]>;
+  createInvoice(invoice: InsertInvoice): Promise<Invoice>;
+  updateInvoiceStatus(id: number, status: string): Promise<Invoice>;
+
+  // Portfolio operations
+  getAllPortfolioItems(): Promise<PortfolioItem[]>;
+  getPortfolioItemsByCategory(category: string): Promise<PortfolioItem[]>;
+  getFeaturedPortfolioItems(): Promise<PortfolioItem[]>;
+  createPortfolioItem(item: InsertPortfolioItem): Promise<PortfolioItem>;
+  updatePortfolioItem(id: number, item: Partial<InsertPortfolioItem>): Promise<PortfolioItem>;
+  deletePortfolioItem(id: number): Promise<void>;
+
+  // Contact inquiry operations
+  getAllContactInquiries(): Promise<ContactInquiry[]>;
+  getContactInquiry(id: number): Promise<ContactInquiry | undefined>;
+  createContactInquiry(inquiry: InsertContactInquiry): Promise<ContactInquiry>;
+  updateContactInquiryStatus(id: number, status: string): Promise<ContactInquiry>;
+}
+
+export class DatabaseStorage implements IStorage {
+  // Client operations
+  async getClient(id: number): Promise<Client | undefined> {
+    const [client] = await db.select().from(clients).where(eq(clients.id, id));
+    return client || undefined;
+  }
+
+  async getClientByEmail(email: string): Promise<Client | undefined> {
+    const [client] = await db.select().from(clients).where(eq(clients.email, email));
+    return client || undefined;
+  }
+
+  async createClient(client: InsertClient): Promise<Client> {
+    const [newClient] = await db
+      .insert(clients)
+      .values(client)
+      .returning();
+    return newClient;
+  }
+
+  async updateClientStripeId(id: number, stripeCustomerId: string): Promise<Client> {
+    const [client] = await db
+      .update(clients)
+      .set({ stripeCustomerId })
+      .where(eq(clients.id, id))
+      .returning();
+    return client;
+  }
+
+  // Invoice operations
+  async getInvoice(id: number): Promise<Invoice | undefined> {
+    const [invoice] = await db.select().from(invoices).where(eq(invoices.id, id));
+    return invoice || undefined;
+  }
+
+  async getInvoicesByClientId(clientId: number): Promise<Invoice[]> {
+    return await db.select().from(invoices).where(eq(invoices.clientId, clientId)).orderBy(desc(invoices.createdAt));
+  }
+
+  async getAllInvoices(): Promise<Invoice[]> {
+    return await db.select().from(invoices).orderBy(desc(invoices.createdAt));
+  }
+
+  async createInvoice(invoice: InsertInvoice): Promise<Invoice> {
+    const [newInvoice] = await db
+      .insert(invoices)
+      .values(invoice)
+      .returning();
+    return newInvoice;
+  }
+
+  async updateInvoiceStatus(id: number, status: string): Promise<Invoice> {
+    const [invoice] = await db
+      .update(invoices)
+      .set({ status, updatedAt: new Date() })
+      .where(eq(invoices.id, id))
+      .returning();
+    return invoice;
+  }
+
+  // Portfolio operations
+  async getAllPortfolioItems(): Promise<PortfolioItem[]> {
+    return await db.select().from(portfolioItems).orderBy(portfolioItems.displayOrder);
+  }
+
+  async getPortfolioItemsByCategory(category: string): Promise<PortfolioItem[]> {
+    return await db.select().from(portfolioItems).where(eq(portfolioItems.category, category)).orderBy(portfolioItems.displayOrder);
+  }
+
+  async getFeaturedPortfolioItems(): Promise<PortfolioItem[]> {
+    return await db.select().from(portfolioItems).where(eq(portfolioItems.featured, 1)).orderBy(portfolioItems.displayOrder);
+  }
+
+  async createPortfolioItem(portfolioItem: InsertPortfolioItem): Promise<PortfolioItem> {
+    const [newItem] = await db
+      .insert(portfolioItems)
+      .values(portfolioItem)
+      .returning();
+    return newItem;
+  }
+
+  async updatePortfolioItem(id: number, item: Partial<InsertPortfolioItem>): Promise<PortfolioItem> {
+    const [portfolioItem] = await db
+      .update(portfolioItems)
+      .set(item)
+      .where(eq(portfolioItems.id, id))
+      .returning();
+    return portfolioItem;
+  }
+
+  async deletePortfolioItem(id: number): Promise<void> {
+    await db.delete(portfolioItems).where(eq(portfolioItems.id, id));
+  }
+
+  // Contact inquiry operations
+  async getAllContactInquiries(): Promise<ContactInquiry[]> {
+    return await db.select().from(contactInquiries).orderBy(desc(contactInquiries.createdAt));
+  }
+
+  async getContactInquiry(id: number): Promise<ContactInquiry | undefined> {
+    const [inquiry] = await db.select().from(contactInquiries).where(eq(contactInquiries.id, id));
+    return inquiry || undefined;
+  }
+
+  async createContactInquiry(inquiry: InsertContactInquiry): Promise<ContactInquiry> {
+    const [newInquiry] = await db
+      .insert(contactInquiries)
+      .values(inquiry)
+      .returning();
+    return newInquiry;
+  }
+
+  async updateContactInquiryStatus(id: number, status: string): Promise<ContactInquiry> {
+    const [inquiry] = await db
+      .update(contactInquiries)
+      .set({ status })
+      .where(eq(contactInquiries.id, id))
+      .returning();
+    return inquiry;
+  }
+}
+
+export const storage = new DatabaseStorage();

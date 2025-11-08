@@ -34,13 +34,41 @@ export default function Contact() {
     },
   });
 
-  const onSubmit = (data: ContactFormValues) => {
+  const onSubmit = async (data: ContactFormValues) => {
     console.log("Contact form submitted:", data);
-    toast({
-      title: "Thank you for your inquiry!",
-      description: "I'll be in touch soon to discuss your project details.",
-    });
-    form.reset();
+    
+    try {
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        toast({
+          title: "Thank you for your inquiry!",
+          description: "I'll be in touch soon to discuss your project details.",
+        });
+        form.reset();
+      } else {
+        toast({
+          title: "Error",
+          description: result.error || "Failed to submit inquiry. Please try again.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error submitting contact form:", error);
+      toast({
+        title: "Error",
+        description: "Failed to submit inquiry. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (

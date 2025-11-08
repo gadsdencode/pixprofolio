@@ -10,8 +10,9 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Loader2 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 
 const invoiceFormSchema = z.object({
   clientName: z.string().min(2, "Client name must be at least 2 characters"),
@@ -22,17 +23,26 @@ const invoiceFormSchema = z.object({
 
 type InvoiceFormValues = z.infer<typeof invoiceFormSchema>;
 
-const mockInvoices = [
-  { id: "INV-001", clientName: "John Smith", amount: "$2,500", status: "Paid", date: "2025-01-15" },
-  { id: "INV-002", clientName: "Sarah Johnson", amount: "$1,800", status: "Sent", date: "2025-01-20" },
-  { id: "INV-003", clientName: "Michael Chen", amount: "$3,200", status: "Paid", date: "2025-01-22" },
-  { id: "INV-004", clientName: "Emma Davis", amount: "$950", status: "Draft", date: "2025-01-25" },
-];
+interface InvoiceData {
+  id: number;
+  stripeInvoiceId: string;
+  amount: string;
+  status: string;
+  description: string;
+  createdAt: string;
+  client?: {
+    name: string;
+  };
+}
 
 export default function Admin() {
   const [isLoading, setIsLoading] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [invoiceUrl, setInvoiceUrl] = useState("");
+
+  const { data: invoices, refetch } = useQuery<InvoiceData[]>({
+    queryKey: ["/api/invoices"],
+  });
 
   const form = useForm<InvoiceFormValues>({
     resolver: zodResolver(invoiceFormSchema),
@@ -68,6 +78,7 @@ export default function Admin() {
         setInvoiceUrl(result.invoiceUrl);
         setDialogOpen(true);
         form.reset();
+        refetch(); // Refresh the invoices list
       } else {
         console.error("Invoice creation failed:", result.error);
         alert("Failed to create invoice: " + (result.error || "Unknown error"));
@@ -199,30 +210,38 @@ export default function Admin() {
                 <CardDescription>View and manage your invoice history</CardDescription>
               </CardHeader>
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Invoice ID</TableHead>
-                      <TableHead>Client Name</TableHead>
-                      <TableHead>Amount</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Date</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {mockInvoices.map((invoice) => (
-                      <TableRow key={invoice.id} data-testid={`row-invoice-${invoice.id}`}>
-                        <TableCell className="font-mono text-sm">{invoice.id}</TableCell>
-                        <TableCell>{invoice.clientName}</TableCell>
-                        <TableCell className="font-semibold">{invoice.amount}</TableCell>
-                        <TableCell>
-                          <Badge variant={getStatusVariant(invoice.status)}>{invoice.status}</Badge>
-                        </TableCell>
-                        <TableCell className="text-muted-foreground">{invoice.date}</TableCell>
+                {invoices && invoices.length > 0 ? (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Invoice ID</TableHead>
+                        <TableHead>Description</TableHead>
+                        <TableHead>Amount</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Date</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {invoices.map((invoice) => (
+                        <TableRow key={invoice.id} data-testid={`row-invoice-${invoice.id}`}>
+                          <TableCell className="font-mono text-sm">{invoice.stripeInvoiceId.substring(0, 20)}...</TableCell>
+                          <TableCell>{invoice.description.substring(0, 50)}...</TableCell>
+                          <TableCell className="font-semibold">${invoice.amount}</TableCell>
+                          <TableCell>
+                            <Badge variant={getStatusVariant(invoice.status)}>{invoice.status}</Badge>
+                          </TableCell>
+                          <TableCell className="text-muted-foreground">
+                            {new Date(invoice.createdAt).toLocaleDateString()}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No invoices yet. Create your first invoice above.
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
