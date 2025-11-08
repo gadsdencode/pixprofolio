@@ -51,6 +51,7 @@ export default function Register() {
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include", // Include cookies
         body: JSON.stringify({
           name: data.name,
           email: data.email,

@@ -41,6 +41,7 @@ export default function Login() {
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include", // CRITICAL: Include cookies in request
         body: JSON.stringify(data),
       });
 

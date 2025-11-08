@@ -24,7 +24,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
   const logoutMutation = useMutation({
     mutationFn: async () => {
-      const response = await fetch("/api/logout", { method: "POST" });
+      const response = await fetch("/api/logout", { 
+        method: "POST",
+        credentials: "include" // Include cookies for logout
+      });
       return response.json();
     },
     onSuccess: () => {
