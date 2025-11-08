@@ -1,7 +1,11 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import Stripe from "stripe";
-import { invoiceSchema, type InvoiceResponse, insertContactInquirySchema } from "@shared/schema";
+import bcrypt from "bcryptjs";
+import passport from "./auth";
+import { isAuthenticated } from "./auth";
+import { loginSchema, registerSchema, invoiceSchema, type InvoiceResponse, insertContactInquirySchema } from "@shared/schema";
+import { z } from "zod";
 import { storage } from "./storage";
 
 if (!process.env.STRIPE_SECRET_KEY) {
@@ -11,8 +15,147 @@ if (!process.env.STRIPE_SECRET_KEY) {
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Stripe invoice creation endpoint
-  app.post("/api/create-invoice", async (req, res) => {
+  // Authentication routes
+  app.post("/api/register", async (req, res) => {
+    try {
+      // Only validate the fields we need on the server
+      const serverRegisterSchema = z.object({
+        name: z.string().min(2, "Name must be at least 2 characters"),
+        email: z.string().email("Please enter a valid email address"),
+        password: z.string()
+          .min(8, "Password must be at least 8 characters")
+          .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+          .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+          .regex(/[0-9]/, "Password must contain at least one number"),
+      });
+
+      const validation = serverRegisterSchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({
+          success: false,
+          error: validation.error.errors[0].message,
+        });
+      }
+
+      const { name, email, password } = validation.data;
+
+      // Check if user already exists
+      const existingUser = await storage.getUserByEmail(email);
+      if (existingUser) {
+        return res.status(400).json({
+          success: false,
+          error: "An account with this email already exists",
+        });
+      }
+
+      // Hash password
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      // Create user
+      const user = await storage.createUser({
+        name,
+        email,
+        password: hashedPassword,
+        role: "admin",
+      });
+
+      res.json({ 
+        success: true, 
+        user: {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+        }
+      });
+    } catch (error: any) {
+      console.error("Registration error:", error);
+      res.status(500).json({ 
+        success: false, 
+        error: error.message || "Failed to create account" 
+      });
+    }
+  });
+
+  app.post("/api/login", (req, res, next) => {
+    const validation = loginSchema.safeParse(req.body);
+    if (!validation.success) {
+      return res.status(400).json({
+        success: false,
+        error: validation.error.errors[0].message,
+      });
+    }
+
+    passport.authenticate("local", (err: any, user: any, info: any) => {
+      if (err) {
+        return res.status(500).json({ 
+          success: false, 
+          error: "Authentication error" 
+        });
+      }
+
+      if (!user) {
+        return res.status(401).json({ 
+          success: false, 
+          error: info?.message || "Invalid email or password" 
+        });
+      }
+
+      req.logIn(user, (err) => {
+        if (err) {
+          return res.status(500).json({ 
+            success: false, 
+            error: "Failed to establish session" 
+          });
+        }
+
+        res.json({ 
+          success: true, 
+          user: {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+          }
+        });
+      });
+    })(req, res, next);
+  });
+
+  app.post("/api/logout", (req, res) => {
+    req.logout((err) => {
+      if (err) {
+        return res.status(500).json({ 
+          success: false, 
+          error: "Failed to logout" 
+        });
+      }
+      
+      // Destroy session to clean up database
+      req.session.destroy((destroyErr) => {
+        if (destroyErr) {
+          console.error("Failed to destroy session:", destroyErr);
+        }
+        res.json({ success: true });
+      });
+    });
+  });
+
+  app.get("/api/auth/status", (req, res) => {
+    if (req.isAuthenticated()) {
+      res.json({ 
+        authenticated: true,
+        user: {
+          id: (req.user as any).id,
+          email: (req.user as any).email,
+          name: (req.user as any).name,
+        }
+      });
+    } else {
+      res.json({ authenticated: false });
+    }
+  });
+
+  // Stripe invoice creation endpoint (protected)
+  app.post("/api/create-invoice", isAuthenticated, async (req, res) => {
     try {
       // Validate request body
       const validation = invoiceSchema.safeParse(req.body);
@@ -110,8 +253,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get all invoices
-  app.get("/api/invoices", async (req, res) => {
+  // Get all invoices (protected)
+  app.get("/api/invoices", isAuthenticated, async (req, res) => {
     try {
       const invoices = await storage.getAllInvoices();
       res.json(invoices);

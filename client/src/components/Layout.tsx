@@ -1,11 +1,42 @@
 import { Link, useLocation } from "wouter";
-import { Camera, Menu, X } from "lucide-react";
+import { Camera, Menu, X, User, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useState } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 export function Layout({ children }: { children: React.ReactNode }) {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { toast } = useToast();
+  
+  const { data: authStatus } = useQuery<{authenticated: boolean; user?: any}>({
+    queryKey: ["/api/auth/status"],
+  });
+
+  const logoutMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch("/api/logout", { method: "POST" });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/status"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/invoices"] });
+      toast({
+        title: "Logged out successfully",
+        description: "You have been logged out.",
+      });
+      setLocation("/");
+    },
+  });
 
   const navLinks = [
     { href: "/", label: "Home" },
@@ -41,6 +72,51 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   </div>
                 </Link>
               ))}
+              
+              {authStatus?.authenticated ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="gap-2">
+                      <User className="w-4 h-4" />
+                      <span className="hidden lg:inline">{authStatus.user?.name}</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <div className="px-2 py-1.5 text-sm font-medium">
+                      {authStatus.user?.email}
+                    </div>
+                    <DropdownMenuSeparator />
+                    <Link href="/admin">
+                      <DropdownMenuItem className="cursor-pointer">
+                        <User className="mr-2 h-4 w-4" />
+                        Admin Dashboard
+                      </DropdownMenuItem>
+                    </Link>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem 
+                      onClick={() => logoutMutation.mutate()}
+                      className="cursor-pointer text-destructive"
+                      data-testid="button-logout"
+                    >
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Logout
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <Link href="/admin">
+                  <div
+                    className={`px-4 py-2 rounded-md transition-colors hover-elevate active-elevate-2 cursor-pointer ${
+                      location === "/admin" || location === "/login" || location === "/register"
+                        ? "bg-accent text-accent-foreground"
+                        : "text-foreground"
+                    }`}
+                    data-testid="link-nav-admin"
+                  >
+                    Admin
+                  </div>
+                </Link>
+              )}
             </nav>
 
             <Button
