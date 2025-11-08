@@ -20,17 +20,17 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <div className="max-w-7xl mx-auto px-4 md:px-8">
           <div className="flex items-center justify-between h-16">
             <Link href="/">
-              <a className="flex items-center gap-2 font-serif text-2xl font-medium hover-elevate active-elevate-2 px-2 py-1 rounded-md" data-testid="link-home">
+              <div className="flex items-center gap-2 font-serif text-2xl font-medium hover-elevate active-elevate-2 px-2 py-1 rounded-md cursor-pointer" data-testid="link-home">
                 <Camera className="w-6 h-6" />
                 <span>Alex Rivera</span>
-              </a>
+              </div>
             </Link>
 
             <nav className="hidden md:flex items-center gap-1">
               {navLinks.map((link) => (
                 <Link key={link.href} href={link.href}>
-                  <a
-                    className={`px-4 py-2 rounded-md transition-colors hover-elevate active-elevate-2 ${
+                  <div
+                    className={`px-4 py-2 rounded-md transition-colors hover-elevate active-elevate-2 cursor-pointer ${
                       location === link.href
                         ? "bg-accent text-accent-foreground"
                         : "text-foreground"
@@ -38,7 +38,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                     data-testid={`link-nav-${link.label.toLowerCase()}`}
                   >
                     {link.label}
-                  </a>
+                  </div>
                 </Link>
               ))}
             </nav>
@@ -59,8 +59,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
               <div className="flex flex-col gap-2">
                 {navLinks.map((link) => (
                   <Link key={link.href} href={link.href}>
-                    <a
-                      className={`block px-4 py-2 rounded-md hover-elevate active-elevate-2 ${
+                    <div
+                      className={`block px-4 py-2 rounded-md hover-elevate active-elevate-2 cursor-pointer ${
                         location === link.href
                           ? "bg-accent text-accent-foreground"
                           : "text-foreground"
@@ -69,7 +69,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                       data-testid={`link-mobile-${link.label.toLowerCase()}`}
                     >
                       {link.label}
-                    </a>
+                    </div>
                   </Link>
                 ))}
               </div>

@@ -1,18 +1,17 @@
-import { sql } from "drizzle-orm";
-import { pgTable, text, varchar } from "drizzle-orm/pg-core";
-import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-export const users = pgTable("users", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  username: text("username").notNull().unique(),
-  password: text("password").notNull(),
+export const invoiceSchema = z.object({
+  clientName: z.string().min(2, "Client name must be at least 2 characters"),
+  clientEmail: z.string().email("Please enter a valid email address"),
+  serviceDescription: z.string().min(10, "Description must be at least 10 characters"),
+  amount: z.number().positive("Amount must be a positive number"),
 });
 
-export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true,
-});
+export type InvoiceRequest = z.infer<typeof invoiceSchema>;
 
-export type InsertUser = z.infer<typeof insertUserSchema>;
-export type User = typeof users.$inferSelect;
+export interface InvoiceResponse {
+  success: boolean;
+  invoiceUrl?: string;
+  invoiceId?: string;
+  error?: string;
+}

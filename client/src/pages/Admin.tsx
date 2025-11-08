@@ -48,13 +48,36 @@ export default function Admin() {
     console.log("Creating invoice:", data);
     setIsLoading(true);
 
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    try {
+      const response = await fetch("/api/create-invoice", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          clientName: data.clientName,
+          clientEmail: data.clientEmail,
+          serviceDescription: data.serviceDescription,
+          amount: parseFloat(data.amount),
+        }),
+      });
 
-    const mockInvoiceUrl = `https://invoice.stripe.com/i/acct_1234567890/test_${Math.random().toString(36).substring(7)}`;
-    setInvoiceUrl(mockInvoiceUrl);
-    setIsLoading(false);
-    setDialogOpen(true);
-    form.reset();
+      const result = await response.json();
+
+      if (result.success && result.invoiceUrl) {
+        setInvoiceUrl(result.invoiceUrl);
+        setDialogOpen(true);
+        form.reset();
+      } else {
+        console.error("Invoice creation failed:", result.error);
+        alert("Failed to create invoice: " + (result.error || "Unknown error"));
+      }
+    } catch (error) {
+      console.error("Error creating invoice:", error);
+      alert("Failed to create invoice. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const getStatusVariant = (status: string) => {
