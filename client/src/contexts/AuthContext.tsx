@@ -31,7 +31,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }>({
     queryKey: ["/api/auth/status"],
     retry: false,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 0, // Always fetch fresh data
+    gcTime: 0, // Don't cache the auth status
   });
 
   const user = authStatus?.authenticated ? authStatus.user ?? null : null;

@@ -80,11 +80,13 @@ export default function Login() {
           description: "You have successfully logged in.",
         });
         
-        // Refetch auth status through context
+        // Refetch auth status through context and wait for it
         await refetchAuth();
         
-        // Use wouter's setLocation for SPA navigation
-        setLocation("/admin");
+        // Give a small delay to ensure auth state is updated
+        setTimeout(() => {
+          setLocation("/admin");
+        }, 100);
       } else {
         toast({
           title: "Login failed",
