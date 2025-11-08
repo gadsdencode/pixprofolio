@@ -163,7 +163,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   );
 
   app.get("/api/auth/google/callback",
-    passport.authenticate("google", { failureRedirect: "/login" }),
+    passport.authenticate("google", { failureRedirect: "/login?error=oauth_failed" }),
     (req, res) => {
       // Successful authentication, redirect to admin
       res.redirect("/admin");

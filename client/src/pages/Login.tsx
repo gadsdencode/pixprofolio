@@ -23,10 +23,26 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 
 export default function Login() {
   const { toast } = useToast();
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
   const { isAuthenticated, refetchAuth } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+
+  // Check for OAuth error in URL params
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.split('?')[1] || '');
+    const error = searchParams.get('error');
+    
+    if (error === 'oauth_failed') {
+      toast({
+        title: "Authentication failed",
+        description: "Could not authenticate with Google. Please try again or use email/password login.",
+        variant: "destructive",
+      });
+      // Clear the error from URL
+      setLocation('/login');
+    }
+  }, [location, setLocation, toast]);
 
   // Redirect if already authenticated
   useEffect(() => {
