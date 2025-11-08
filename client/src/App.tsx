@@ -10,9 +10,10 @@ import Home from "@/pages/Home";
 import Portfolio from "@/pages/Portfolio";
 import About from "@/pages/About";
 import Contact from "@/pages/Contact";
-import Admin from "@/pages/Admin";
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
+import OwnerDashboard from "@/pages/OwnerDashboard";
+import ClientDashboard from "@/pages/ClientDashboard";
 
 function Router() {
   return (
@@ -23,10 +24,17 @@ function Router() {
       <Route path="/contact" component={Contact} />
       <Route path="/login" component={Login} />
       <Route path="/register" component={Register} />
-      <Route path="/admin">
+      <Route path="/owner-dashboard">
         {() => (
-          <ProtectedRoute requiredRole="admin">
-            <Admin />
+          <ProtectedRoute requiredRole="owner">
+            <OwnerDashboard />
+          </ProtectedRoute>
+        )}
+      </Route>
+      <Route path="/client-dashboard">
+        {() => (
+          <ProtectedRoute requiredRole="client">
+            <ClientDashboard />
           </ProtectedRoute>
         )}
       </Route>

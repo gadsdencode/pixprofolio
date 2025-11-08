@@ -24,7 +24,7 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 export default function Login() {
   const { toast } = useToast();
   const [location, setLocation] = useLocation();
-  const { isAuthenticated, refetchAuth } = useAuth();
+  const { isAuthenticated, user, refetchAuth } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
@@ -46,10 +46,14 @@ export default function Login() {
 
   // Redirect if already authenticated
   useEffect(() => {
-    if (isAuthenticated) {
-      setLocation("/admin");
+    if (isAuthenticated && user) {
+      if (user.role === "owner") {
+        setLocation("/owner-dashboard");
+      } else {
+        setLocation("/client-dashboard");
+      }
     }
-  }, [isAuthenticated, setLocation]);
+  }, [isAuthenticated, user, setLocation]);
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -83,9 +87,13 @@ export default function Login() {
         // Refetch auth status through context and wait for it
         await refetchAuth();
         
-        // Give a small delay to ensure auth state is updated
+        // Redirect based on user role
         setTimeout(() => {
-          setLocation("/admin");
+          if (result.user?.role === "owner") {
+            setLocation("/owner-dashboard");
+          } else {
+            setLocation("/client-dashboard");
+          }
         }, 100);
       } else {
         toast({

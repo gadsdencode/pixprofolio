@@ -89,10 +89,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
                       {authStatus.user?.email}
                     </div>
                     <DropdownMenuSeparator />
-                    <Link href="/admin">
+                    <Link href={authStatus.user?.role === "owner" ? "/owner-dashboard" : "/client-dashboard"}>
                       <DropdownMenuItem className="cursor-pointer">
                         <User className="mr-2 h-4 w-4" />
-                        Admin Dashboard
+                        {authStatus.user?.role === "owner" ? "Owner Dashboard" : "My Dashboard"}
                       </DropdownMenuItem>
                     </Link>
                     <DropdownMenuSeparator />
@@ -107,16 +107,16 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   </DropdownMenuContent>
                 </DropdownMenu>
               ) : (
-                <Link href="/admin">
+                <Link href="/login">
                   <div
                     className={`px-4 py-2 rounded-md transition-colors hover-elevate active-elevate-2 cursor-pointer ${
-                      location === "/admin" || location === "/login" || location === "/register"
+                      location === "/login" || location === "/register"
                         ? "bg-accent text-accent-foreground"
                         : "text-foreground"
                     }`}
-                    data-testid="link-nav-admin"
+                    data-testid="link-nav-login"
                   >
-                    Admin
+                    Login
                   </div>
                 </Link>
               )}

@@ -50,8 +50,12 @@ export interface IStorage {
   // Contact inquiry operations
   getAllContactInquiries(): Promise<ContactInquiry[]>;
   getContactInquiry(id: number): Promise<ContactInquiry | undefined>;
+  getContactInquiriesByEmail(email: string): Promise<ContactInquiry[]>;
   createContactInquiry(inquiry: InsertContactInquiry): Promise<ContactInquiry>;
   updateContactInquiryStatus(id: number, status: string): Promise<ContactInquiry>;
+
+  // Additional invoice operations
+  getInvoicesByEmail(email: string): Promise<Invoice[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -200,6 +204,10 @@ export class DatabaseStorage implements IStorage {
     return inquiry || undefined;
   }
 
+  async getContactInquiriesByEmail(email: string): Promise<ContactInquiry[]> {
+    return await db.select().from(contactInquiries).where(eq(contactInquiries.email, email)).orderBy(desc(contactInquiries.createdAt));
+  }
+
   async createContactInquiry(inquiry: InsertContactInquiry): Promise<ContactInquiry> {
     const [newInquiry] = await db
       .insert(contactInquiries)
@@ -215,6 +223,17 @@ export class DatabaseStorage implements IStorage {
       .where(eq(contactInquiries.id, id))
       .returning();
     return inquiry;
+  }
+
+  // Additional invoice operations
+  async getInvoicesByEmail(email: string): Promise<Invoice[]> {
+    // First get the client by email
+    const [client] = await db.select().from(clients).where(eq(clients.email, email));
+    if (!client) {
+      return [];
+    }
+    // Then get all invoices for that client
+    return await db.select().from(invoices).where(eq(invoices.clientId, client.id)).orderBy(desc(invoices.createdAt));
   }
 }
 

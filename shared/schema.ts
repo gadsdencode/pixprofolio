@@ -10,7 +10,7 @@ export const users = pgTable("users", {
   email: text("email").notNull().unique(),
   password: text("password"), // Hashed password (optional for OAuth users)
   name: text("name").notNull(),
-  role: text("role").notNull().default("admin"), // admin, photographer
+  role: text("role").notNull().default("client"), // owner, client
   provider: text("provider").notNull().default("local"), // local, google
   providerId: text("provider_id"), // OAuth provider's user ID
   profilePicture: text("profile_picture"), // URL to profile picture

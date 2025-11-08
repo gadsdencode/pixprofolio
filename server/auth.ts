@@ -60,8 +60,7 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
           
           if (!user) {
             // Create new user from Google profile with client role by default
-            // SECURITY: New OAuth users get 'client' role. Admin promotion must be done manually.
-            // To make a user admin, update their role in the database directly or create an admin endpoint.
+            // SECURITY: New OAuth users get 'client' role. Owner role must be assigned manually.
             user = await storage.createUser({
               email,
               name: profile.displayName || email.split('@')[0],

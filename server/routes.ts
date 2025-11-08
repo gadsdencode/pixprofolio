@@ -51,12 +51,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Hash password
       const hashedPassword = await bcrypt.hash(password, 10);
 
-      // Create user
+      // Create user (default to client role for new registrations)
       const user = await storage.createUser({
         name,
         email,
         password: hashedPassword,
-        role: "admin",
+        role: "client", // New users are clients by default
         provider: "local",
       });
 
@@ -178,8 +178,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/auth/google/callback",
     passport.authenticate("google", { failureRedirect: "/login?error=oauth_failed" }),
     (req, res) => {
-      // Successful authentication, redirect to admin
-      res.redirect("/admin");
+      // Successful authentication, redirect based on role
+      const user = req.user as any;
+      if (user?.role === "owner") {
+        res.redirect("/owner-dashboard");
+      } else {
+        res.redirect("/client-dashboard");
+      }
     }
   );
 
@@ -309,6 +314,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error("Error saving contact inquiry:", error);
       res.status(500).json({ success: false, error: error.message || "Failed to save contact inquiry" });
+    }
+  });
+
+  // Get all contact inquiries for owner
+  app.get("/api/contact-inquiries", isAuthenticated, async (req, res) => {
+    try {
+      const user = req.user as any;
+      if (user?.role !== "owner") {
+        return res.status(403).json({ error: "Access denied" });
+      }
+      const inquiries = await storage.getAllContactInquiries();
+      res.json(inquiries);
+    } catch (error: any) {
+      console.error("Error fetching contact inquiries:", error);
+      res.status(500).json({ error: error.message || "Failed to fetch contact inquiries" });
+    }
+  });
+
+  // Get client's own project requests
+  app.get("/api/client/requests", isAuthenticated, async (req, res) => {
+    try {
+      const user = req.user as any;
+      if (user?.role !== "client") {
+        return res.status(403).json({ error: "Access denied" });
+      }
+      const requests = await storage.getContactInquiriesByEmail(user.email);
+      res.json(requests);
+    } catch (error: any) {
+      console.error("Error fetching client requests:", error);
+      res.status(500).json({ error: error.message || "Failed to fetch requests" });
+    }
+  });
+
+  // Get client's portfolio items (placeholder for now)
+  app.get("/api/client/portfolio", isAuthenticated, async (req, res) => {
+    try {
+      const user = req.user as any;
+      if (user?.role !== "client") {
+        return res.status(403).json({ error: "Access denied" });
+      }
+      // For now, return empty array - this would be populated with actual portfolio items
+      res.json([]);
+    } catch (error: any) {
+      console.error("Error fetching portfolio:", error);
+      res.status(500).json({ error: error.message || "Failed to fetch portfolio" });
+    }
+  });
+
+  // Get client's invoices
+  app.get("/api/client/invoices", isAuthenticated, async (req, res) => {
+    try {
+      const user = req.user as any;
+      if (user?.role !== "client") {
+        return res.status(403).json({ error: "Access denied" });
+      }
+      const invoices = await storage.getInvoicesByEmail(user.email);
+      res.json(invoices);
+    } catch (error: any) {
+      console.error("Error fetching client invoices:", error);
+      res.status(500).json({ error: error.message || "Failed to fetch invoices" });
     }
   });
 
