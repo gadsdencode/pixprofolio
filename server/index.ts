@@ -23,6 +23,11 @@ if (!sessionSecret) {
   throw new Error("SESSION_SECRET environment variable is required for secure sessions");
 }
 
+// Trust proxy for production (needed for Replit and other hosting platforms)
+if (process.env.NODE_ENV === "production") {
+  app.set("trust proxy", 1); // Trust first proxy
+}
+
 app.use(
   session({
     store: new PgSession({
@@ -36,6 +41,7 @@ app.use(
     cookie: {
       secure: process.env.NODE_ENV === "production",
       httpOnly: true,
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // Allow cross-site cookies in production for auth
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
     },
   })
