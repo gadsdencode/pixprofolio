@@ -84,17 +84,9 @@ export default function Login() {
           description: "You have successfully logged in.",
         });
         
-        // Refetch auth status through context and wait for it
+        // Refetch auth status through context
+        // The useEffect hook will handle the redirect once auth is updated
         await refetchAuth();
-        
-        // Redirect based on user role
-        setTimeout(() => {
-          if (result.user?.role === "owner") {
-            setLocation("/owner-dashboard");
-          } else {
-            setLocation("/client-dashboard");
-          }
-        }, 100);
       } else {
         toast({
           title: "Login failed",
