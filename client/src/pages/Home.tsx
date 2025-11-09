@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 import heroImage from "@assets/generated_images/Hero_landscape_sunset_mountains_d1b75bde.png";
 import weddingImage from "@assets/generated_images/Wedding_ceremony_sunset_silhouette_ba914041.png";
@@ -37,6 +38,7 @@ import realtorImage from "@assets/generated_images/Modern_luxury_home_exterior_d
 export default function Home() {
   const [email, setEmail] = useState("");
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const handleNewsletterSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -260,7 +262,7 @@ export default function Home() {
           <div className="text-center mb-16">
             <Badge variant="outline" className="mb-4">Why Choose Me</Badge>
             <h2 className="font-serif text-4xl md:text-5xl lg:text-6xl font-light mb-6">
-              The Alex Rivera Difference
+              {user ? `The ${user.name} Difference` : "The Difference"}
             </h2>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
               More than just beautiful photos—an experience crafted with care, expertise, and artistry

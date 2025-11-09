@@ -56,7 +56,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             <Link href="/">
               <div className="flex items-center gap-2 font-serif text-2xl font-medium hover-elevate active-elevate-2 px-2 py-1 rounded-md cursor-pointer" data-testid="link-home">
                 <Camera className="w-6 h-6" />
-                <span>Alex Rivera</span>
+                <span>{authStatus?.user?.name || "Photography"}</span>
               </div>
             </Link>
 
@@ -163,7 +163,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <div className="max-w-7xl mx-auto px-4 md:px-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-sm text-muted-foreground">
-              © 2025 Alex Rivera Photography. All rights reserved.
+              © 2025 {authStatus?.user?.name ? `${authStatus.user.name} Photography` : "Photography Services"}. All rights reserved.
             </p>
             <div className="flex items-center gap-6">
               <a
