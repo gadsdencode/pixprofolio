@@ -42,6 +42,7 @@ export interface IStorage {
   // Portfolio operations
   getAllPortfolioItems(): Promise<PortfolioItem[]>;
   getPortfolioItemsByCategory(category: string): Promise<PortfolioItem[]>;
+  getPortfolioItemsByClientId(clientId: number): Promise<PortfolioItem[]>;
   getFeaturedPortfolioItems(): Promise<PortfolioItem[]>;
   createPortfolioItem(item: InsertPortfolioItem): Promise<PortfolioItem>;
   updatePortfolioItem(id: number, item: Partial<InsertPortfolioItem>): Promise<PortfolioItem>;
@@ -167,6 +168,10 @@ export class DatabaseStorage implements IStorage {
 
   async getPortfolioItemsByCategory(category: string): Promise<PortfolioItem[]> {
     return await db.select().from(portfolioItems).where(eq(portfolioItems.category, category)).orderBy(portfolioItems.displayOrder);
+  }
+
+  async getPortfolioItemsByClientId(clientId: number): Promise<PortfolioItem[]> {
+    return await db.select().from(portfolioItems).where(eq(portfolioItems.clientId, clientId)).orderBy(portfolioItems.displayOrder);
   }
 
   async getFeaturedPortfolioItems(): Promise<PortfolioItem[]> {

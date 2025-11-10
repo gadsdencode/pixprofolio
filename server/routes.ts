@@ -358,15 +358,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get client's portfolio items (placeholder for now)
+  // Get client's portfolio items
   app.get("/api/client/portfolio", isAuthenticated, async (req, res) => {
     try {
       const user = req.user as any;
       if (user?.role !== "client") {
         return res.status(403).json({ error: "Access denied" });
       }
-      // For now, return empty array - this would be populated with actual portfolio items
-      res.json([]);
+
+      // Get the client by email
+      const client = await storage.getClientByEmail(user.email);
+      if (!client) {
+        // Client doesn't exist yet, return empty array
+        return res.json([]);
+      }
+
+      // Get portfolio items for this client
+      const portfolioItems = await storage.getPortfolioItemsByClientId(client.id);
+      res.json(portfolioItems);
     } catch (error: any) {
       console.error("Error fetching portfolio:", error);
       res.status(500).json({ error: error.message || "Failed to fetch portfolio" });

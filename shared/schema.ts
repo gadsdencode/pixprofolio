@@ -127,6 +127,7 @@ export type InsertInvoice = z.infer<typeof insertInvoiceSchema>;
 // Portfolio items table
 export const portfolioItems = pgTable("portfolio_items", {
   id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  clientId: integer("client_id").references(() => clients.id), // Optional: links portfolio item to a specific client
   title: text("title").notNull(),
   category: text("category").notNull(), // Weddings, Portraits, Landscape, Events, Commercial, Realtor/Home Photography
   description: text("description").notNull(),
@@ -137,6 +138,7 @@ export const portfolioItems = pgTable("portfolio_items", {
 });
 
 export const insertPortfolioItemSchema = createInsertSchema(portfolioItems).pick({
+  clientId: true,
   title: true,
   category: true,
   description: true,
