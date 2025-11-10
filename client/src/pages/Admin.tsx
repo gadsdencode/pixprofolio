@@ -13,8 +13,11 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useState } from "react";
 import { Loader2, LogOut, User } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
+import { apiRequest } from "@/lib/queryClient";
+import { queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 const invoiceFormSchema = z.object({
   clientName: z.string().min(2, "Client name must be at least 2 characters"),
@@ -39,11 +42,11 @@ interface InvoiceData {
 
 export default function Admin() {
   const { user, logout } = useAuth();
-  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [invoiceUrl, setInvoiceUrl] = useState("");
 
-  const { data: invoices, refetch } = useQuery<InvoiceData[]>({
+  const { data: invoices } = useQuery<InvoiceData[]>({
     queryKey: ["/api/invoices"],
   });
 
@@ -57,41 +60,43 @@ export default function Admin() {
     },
   });
 
-  const onSubmit = async (data: InvoiceFormValues) => {
-    console.log("Creating invoice:", data);
-    setIsLoading(true);
-
-    try {
-      const response = await fetch("/api/create-invoice", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          clientName: data.clientName,
-          clientEmail: data.clientEmail,
-          serviceDescription: data.serviceDescription,
-          amount: parseFloat(data.amount),
-        }),
+  const createInvoiceMutation = useMutation({
+    mutationFn: async (data: InvoiceFormValues) => {
+      const response = await apiRequest("POST", "/api/create-invoice", {
+        clientName: data.clientName,
+        clientEmail: data.clientEmail,
+        serviceDescription: data.serviceDescription,
+        amount: parseFloat(data.amount),
       });
-
-      const result = await response.json();
-
+      return response.json();
+    },
+    onSuccess: (result) => {
       if (result.success && result.invoiceUrl) {
         setInvoiceUrl(result.invoiceUrl);
         setDialogOpen(true);
         form.reset();
-        refetch(); // Refresh the invoices list
+        // Invalidate and refetch invoices list
+        queryClient.invalidateQueries({ queryKey: ["/api/invoices"] });
       } else {
-        console.error("Invoice creation failed:", result.error);
-        alert("Failed to create invoice: " + (result.error || "Unknown error"));
+        toast({
+          title: "Error",
+          description: result.error || "Failed to create invoice. Please try again.",
+          variant: "destructive",
+        });
       }
-    } catch (error) {
+    },
+    onError: (error: Error) => {
       console.error("Error creating invoice:", error);
-      alert("Failed to create invoice. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create invoice. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const onSubmit = (data: InvoiceFormValues) => {
+    createInvoiceMutation.mutate(data);
   };
 
   const getStatusVariant = (status: string) => {
@@ -225,8 +230,12 @@ export default function Admin() {
                       )}
                     />
 
-                    <Button type="submit" disabled={isLoading} data-testid="button-generate-invoice">
-                      {isLoading ? (
+                    <Button 
+                      type="submit" 
+                      disabled={createInvoiceMutation.isPending} 
+                      data-testid="button-generate-invoice"
+                    >
+                      {createInvoiceMutation.isPending ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                           Generating Invoice...

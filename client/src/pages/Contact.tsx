@@ -9,6 +9,9 @@ import { useToast } from "@/hooks/use-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { useMutation } from "@tanstack/react-query";
+import { Loader2 } from "lucide-react";
+import { apiRequest } from "@/lib/queryClient";
 
 const contactFormSchema = z.object({
   fullName: z.string().min(2, "Name must be at least 2 characters"),
@@ -34,20 +37,12 @@ export default function Contact() {
     },
   });
 
-  const onSubmit = async (data: ContactFormValues) => {
-    console.log("Contact form submitted:", data);
-    
-    try {
-      const response = await fetch("/api/contact", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
-
-      const result = await response.json();
-
+  const contactMutation = useMutation({
+    mutationFn: async (data: ContactFormValues) => {
+      const response = await apiRequest("POST", "/api/contact", data);
+      return response.json();
+    },
+    onSuccess: (result) => {
       if (result.success) {
         toast({
           title: "Thank you for your inquiry!",
@@ -61,14 +56,19 @@ export default function Contact() {
           variant: "destructive",
         });
       }
-    } catch (error) {
+    },
+    onError: (error: Error) => {
       console.error("Error submitting contact form:", error);
       toast({
         title: "Error",
-        description: "Failed to submit inquiry. Please try again.",
+        description: error.message || "Failed to submit inquiry. Please try again.",
         variant: "destructive",
       });
-    }
+    },
+  });
+
+  const onSubmit = (data: ContactFormValues) => {
+    contactMutation.mutate(data);
   };
 
   return (
@@ -178,8 +178,20 @@ export default function Contact() {
                     )}
                   />
 
-                  <Button type="submit" className="w-full" data-testid="button-submit">
-                    Send Message
+                  <Button 
+                    type="submit" 
+                    className="w-full" 
+                    disabled={contactMutation.isPending}
+                    data-testid="button-submit"
+                  >
+                    {contactMutation.isPending ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Sending...
+                      </>
+                    ) : (
+                      "Send Message"
+                    )}
                   </Button>
                 </form>
               </Form>
