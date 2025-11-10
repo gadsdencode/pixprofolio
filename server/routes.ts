@@ -317,6 +317,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get all portfolio items (public endpoint)
+  app.get("/api/portfolio", async (req, res) => {
+    try {
+      const items = await storage.getAllPortfolioItems();
+      res.json(items);
+    } catch (error: any) {
+      console.error("Error fetching portfolio items:", error);
+      res.status(500).json({ error: error.message || "Failed to fetch portfolio items" });
+    }
+  });
+
   // Get all contact inquiries for owner
   app.get("/api/contact-inquiries", isAuthenticated, async (req, res) => {
     try {

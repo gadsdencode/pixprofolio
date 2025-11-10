@@ -2,82 +2,35 @@ import { Layout } from "@/components/Layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { Loader2 } from "lucide-react";
 
-import weddingImage from "@assets/generated_images/Wedding_ceremony_sunset_silhouette_ba914041.png";
-import portraitImage from "@assets/generated_images/Professional_portrait_headshot_woman_7f0f9989.png";
-import landscapeImage from "@assets/generated_images/Mountain_lake_reflection_dawn_85a793e7.png";
-import eventImage from "@assets/generated_images/Elegant_gala_dinner_event_528eb786.png";
-import commercialImage from "@assets/generated_images/Luxury_watch_product_photography_8a6651e0.png";
-import realtorImage from "@assets/generated_images/Modern_luxury_home_exterior_d6469a58.png";
-
-const portfolioItems = [
-  {
-    id: 1,
-    title: "Golden Hour Wedding",
-    category: "Weddings",
-    description: "Romantic outdoor ceremony at sunset",
-    image: weddingImage,
-  },
-  {
-    id: 2,
-    title: "Natural Portrait",
-    category: "Portraits",
-    description: "Contemporary portrait session",
-    image: portraitImage,
-  },
-  {
-    id: 3,
-    title: "Mountain Serenity",
-    category: "Landscape",
-    description: "Dawn reflection at alpine lake",
-    image: landscapeImage,
-  },
-  {
-    id: 4,
-    title: "Elegant Gala",
-    category: "Events",
-    description: "Corporate event photography",
-    image: eventImage,
-  },
-  {
-    id: 5,
-    title: "Luxury Timepiece",
-    category: "Commercial",
-    description: "Product photography for premium brand",
-    image: commercialImage,
-  },
-  {
-    id: 6,
-    title: "Sunset Vows",
-    category: "Weddings",
-    description: "Beach wedding ceremony",
-    image: weddingImage,
-  },
-  {
-    id: 7,
-    title: "Modern Dream Home",
-    category: "Realtor/Home Photography",
-    description: "Luxury residential property listing",
-    image: realtorImage,
-  },
-  {
-    id: 8,
-    title: "Architectural Elegance",
-    category: "Realtor/Home Photography",
-    description: "Contemporary home exterior showcase",
-    image: realtorImage,
-  },
-];
+interface PortfolioItem {
+  id: number;
+  title: string;
+  category: string;
+  description: string;
+  imageUrl: string;
+  featured: number;
+  displayOrder: number;
+  createdAt: Date | null;
+}
 
 export default function Portfolio() {
   const [selectedCategory, setSelectedCategory] = useState("All");
+
+  // Fetch portfolio items from API
+  const { data: portfolioItems = [], isLoading } = useQuery<PortfolioItem[]>({
+    queryKey: ["/api/portfolio"],
+  });
 
   const filteredItems =
     selectedCategory === "All"
       ? portfolioItems
       : portfolioItems.filter((item) => item.category === selectedCategory);
 
-  const categories = ["All", "Weddings", "Portraits", "Landscape", "Events", "Commercial", "Realtor/Home Photography"];
+  // Extract unique categories from portfolio items
+  const categories = ["All", ...Array.from(new Set(portfolioItems.map((item) => item.category)))];
 
   return (
     <Layout>
@@ -107,31 +60,41 @@ export default function Portfolio() {
             </TabsList>
           </Tabs>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredItems.map((item) => (
-              <Card
-                key={item.id}
-                className="overflow-hidden hover:scale-105 transition-transform duration-300 cursor-pointer"
-                data-testid={`card-portfolio-${item.id}`}
-              >
-                <CardHeader className="p-0">
-                  <div className="aspect-[4/3] overflow-hidden">
-                    <img
-                      src={item.image}
-                      alt={item.title}
-                      className="w-full h-full object-cover"
-                      loading="lazy"
-                    />
-                  </div>
-                </CardHeader>
-                <CardContent className="p-6">
-                  <CardTitle className="text-xl mb-2">{item.title}</CardTitle>
-                  <CardDescription>{item.description}</CardDescription>
-                  <p className="text-sm text-muted-foreground mt-2">{item.category}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          {isLoading ? (
+            <div className="flex justify-center items-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : filteredItems.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">No portfolio items found.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {filteredItems.map((item) => (
+                <Card
+                  key={item.id}
+                  className="overflow-hidden hover:scale-105 transition-transform duration-300 cursor-pointer"
+                  data-testid={`card-portfolio-${item.id}`}
+                >
+                  <CardHeader className="p-0">
+                    <div className="aspect-[4/3] overflow-hidden">
+                      <img
+                        src={item.imageUrl}
+                        alt={item.title}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                    </div>
+                  </CardHeader>
+                  <CardContent className="p-6">
+                    <CardTitle className="text-xl mb-2">{item.title}</CardTitle>
+                    <CardDescription>{item.description}</CardDescription>
+                    <p className="text-sm text-muted-foreground mt-2">{item.category}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </Layout>
