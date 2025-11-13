@@ -69,10 +69,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       });
     } catch (error: any) {
-      console.error("Registration error:", error);
+      console.error("API Error:", error);
       res.status(500).json({ 
         success: false, 
-        error: error.message || "Failed to create account" 
+        error: "An internal server error occurred." 
       });
     }
   });
@@ -283,10 +283,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json(response);
     } catch (error: any) {
-      console.error("Error creating invoice:", error);
+      console.error("API Error:", error);
       const response: InvoiceResponse = {
         success: false,
-        error: error.message || "Failed to create invoice",
+        error: "An internal server error occurred.",
       };
       res.status(500).json(response);
     }
@@ -298,8 +298,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const invoices = await storage.getAllInvoices();
       res.json(invoices);
     } catch (error: any) {
-      console.error("Error fetching invoices:", error);
-      res.status(500).json({ error: error.message || "Failed to fetch invoices" });
+      console.error("API Error:", error);
+      res.status(500).json({ 
+        success: false, 
+        error: "An internal server error occurred." 
+      });
     }
   });
 
@@ -317,8 +320,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const inquiry = await storage.createContactInquiry(validation.data);
       res.json({ success: true, inquiry });
     } catch (error: any) {
-      console.error("Error saving contact inquiry:", error);
-      res.status(500).json({ success: false, error: error.message || "Failed to save contact inquiry" });
+      console.error("API Error:", error);
+      res.status(500).json({ 
+        success: false, 
+        error: "An internal server error occurred." 
+      });
     }
   });
 
@@ -331,8 +337,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         : await storage.getAllPortfolioItems();
       res.json(items);
     } catch (error: any) {
-      console.error("Error fetching portfolio items:", error);
-      res.status(500).json({ error: error.message || "Failed to fetch portfolio items" });
+      console.error("API Error:", error);
+      res.status(500).json({ 
+        success: false, 
+        error: "An internal server error occurred." 
+      });
     }
   });
 
@@ -346,8 +355,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const inquiries = await storage.getAllContactInquiries();
       res.json(inquiries);
     } catch (error: any) {
-      console.error("Error fetching contact inquiries:", error);
-      res.status(500).json({ error: error.message || "Failed to fetch contact inquiries" });
+      console.error("API Error:", error);
+      res.status(500).json({ 
+        success: false, 
+        error: "An internal server error occurred." 
+      });
     }
   });
 
@@ -361,8 +373,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const summary = await storage.getOwnerDashboardSummary();
       res.json(summary);
     } catch (error: any) {
-      console.error("Error fetching dashboard summary:", error);
-      res.status(500).json({ error: error.message || "Failed to fetch dashboard summary" });
+      console.error("API Error:", error);
+      res.status(500).json({ 
+        success: false, 
+        error: "An internal server error occurred." 
+      });
     }
   });
 
@@ -376,8 +391,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const requests = await storage.getContactInquiriesByEmail(user.email);
       res.json(requests);
     } catch (error: any) {
-      console.error("Error fetching client requests:", error);
-      res.status(500).json({ error: error.message || "Failed to fetch requests" });
+      console.error("API Error:", error);
+      res.status(500).json({ 
+        success: false, 
+        error: "An internal server error occurred." 
+      });
     }
   });
 
@@ -400,8 +418,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const portfolioItems = await storage.getPortfolioItemsByClientId(client.id);
       res.json(portfolioItems);
     } catch (error: any) {
-      console.error("Error fetching portfolio:", error);
-      res.status(500).json({ error: error.message || "Failed to fetch portfolio" });
+      console.error("API Error:", error);
+      res.status(500).json({ 
+        success: false, 
+        error: "An internal server error occurred." 
+      });
     }
   });
 
@@ -415,8 +436,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const invoices = await storage.getInvoicesByEmail(user.email);
       res.json(invoices);
     } catch (error: any) {
-      console.error("Error fetching client invoices:", error);
-      res.status(500).json({ error: error.message || "Failed to fetch invoices" });
+      console.error("API Error:", error);
+      res.status(500).json({ 
+        success: false, 
+        error: "An internal server error occurred." 
+      });
     }
   });
 
