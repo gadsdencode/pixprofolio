@@ -190,6 +190,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Stripe invoice creation endpoint (protected)
   app.post("/api/create-invoice", isAuthenticated, async (req, res) => {
+    const user = req.user as any;
+    if (user?.role !== "owner") {
+      return res.status(403).json({ success: false, error: "Access denied" });
+    }
+
     try {
       // Validate request body
       const validation = invoiceSchema.safeParse(req.body);
