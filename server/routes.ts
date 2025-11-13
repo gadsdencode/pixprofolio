@@ -60,6 +60,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         provider: "local",
       });
 
+      // Synchronize client creation: create corresponding entry in clients table
+      if (user.role === "client") {
+        // Check if client already exists (shouldn't happen, but safety check)
+        const existingClient = await storage.getClientByEmail(user.email);
+        if (!existingClient) {
+          await storage.createClient({
+            name: user.name,
+            email: user.email,
+          });
+        }
+      }
+
       res.json({ 
         success: true, 
         user: {
