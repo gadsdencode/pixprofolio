@@ -21,19 +21,31 @@ export default function OwnerDashboard() {
     }
   }, [user, authLoading, setLocation]);
 
-  // Fetch contact inquiries (project requests)
+  // Fetch dashboard summary (aggregated stats)
+  const { data: dashboardSummary, isLoading: summaryLoading } = useQuery<{
+    newInquiries: number;
+    activeProjects: number;
+    totalRevenue: number;
+    pendingRevenue: number;
+  }>({
+    queryKey: ["/api/owner/dashboard-summary"],
+    enabled: !!user && user.role === "owner",
+    queryFn: () => fetch("/api/owner/dashboard-summary").then((res) => res.json()),
+  });
+
+  // Fetch contact inquiries (project requests) - still needed for tabs
   const { data: inquiries = [], isLoading: inquiriesLoading } = useQuery<any[]>({
     queryKey: ["/api/contact-inquiries"],
     enabled: !!user && user.role === "owner",
   });
 
-  // Fetch invoices
+  // Fetch invoices - still needed for tabs
   const { data: invoices = [], isLoading: invoicesLoading } = useQuery<any[]>({
     queryKey: ["/api/invoices"],
     enabled: !!user && user.role === "owner",
   });
 
-  if (authLoading || inquiriesLoading || invoicesLoading) {
+  if (authLoading || summaryLoading || inquiriesLoading || invoicesLoading) {
     return (
       <Layout>
         <div className="flex items-center justify-center min-h-[calc(100vh-8rem)]">
@@ -47,17 +59,19 @@ export default function OwnerDashboard() {
     return null;
   }
 
-  // Categorize inquiries by status
+  // Categorize inquiries by status (still needed for tabs display)
   const newInquiries = inquiries?.filter((i: any) => i.status === "new") || [];
   const contactedInquiries = inquiries?.filter((i: any) => i.status === "contacted") || [];
   const convertedInquiries = inquiries?.filter((i: any) => i.status === "converted") || [];
   const closedInquiries = inquiries?.filter((i: any) => i.status === "closed") || [];
 
-  // Calculate invoice stats
-  const paidInvoices = invoices?.filter((i: any) => i.status === "paid") || [];
-  const sentInvoices = invoices?.filter((i: any) => i.status === "sent") || [];
-  const totalRevenue = paidInvoices.reduce((sum: number, inv: any) => sum + parseFloat(inv.amount), 0);
-  const pendingRevenue = sentInvoices.reduce((sum: number, inv: any) => sum + parseFloat(inv.amount), 0);
+  // Use dashboard summary for stats (aggregated on backend)
+  const stats = dashboardSummary || {
+    newInquiries: 0,
+    activeProjects: 0,
+    totalRevenue: 0,
+    pendingRevenue: 0,
+  };
 
   const getProjectTypeBadgeVariant = (type: string) => {
     switch (type.toLowerCase()) {
@@ -94,7 +108,7 @@ export default function OwnerDashboard() {
               <MessageSquare className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{newInquiries.length}</div>
+              <div className="text-2xl font-bold">{stats.newInquiries}</div>
               <p className="text-xs text-muted-foreground">Awaiting response</p>
             </CardContent>
           </Card>
@@ -105,7 +119,7 @@ export default function OwnerDashboard() {
               <Camera className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{contactedInquiries.length}</div>
+              <div className="text-2xl font-bold">{stats.activeProjects}</div>
               <p className="text-xs text-muted-foreground">In progress</p>
             </CardContent>
           </Card>
@@ -116,7 +130,7 @@ export default function OwnerDashboard() {
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">${totalRevenue.toFixed(2)}</div>
+              <div className="text-2xl font-bold">${stats.totalRevenue.toFixed(2)}</div>
               <p className="text-xs text-muted-foreground">From paid invoices</p>
             </CardContent>
           </Card>
@@ -127,7 +141,7 @@ export default function OwnerDashboard() {
               <Clock className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">${pendingRevenue.toFixed(2)}</div>
+              <div className="text-2xl font-bold">${stats.pendingRevenue.toFixed(2)}</div>
               <p className="text-xs text-muted-foreground">Outstanding invoices</p>
             </CardContent>
           </Card>

@@ -351,6 +351,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get owner dashboard summary (aggregated stats)
+  app.get("/api/owner/dashboard-summary", isAuthenticated, async (req, res) => {
+    try {
+      const user = req.user as any;
+      if (user?.role !== "owner") {
+        return res.status(403).json({ success: false, error: "Access denied" });
+      }
+      const summary = await storage.getOwnerDashboardSummary();
+      res.json(summary);
+    } catch (error: any) {
+      console.error("Error fetching dashboard summary:", error);
+      res.status(500).json({ error: error.message || "Failed to fetch dashboard summary" });
+    }
+  });
+
   // Get client's own project requests
   app.get("/api/client/requests", isAuthenticated, async (req, res) => {
     try {

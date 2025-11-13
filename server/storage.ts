@@ -16,7 +16,7 @@ import {
   type InsertContactInquiry,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, count, sql } from "drizzle-orm";
 
 export interface IStorage {
   // User operations
@@ -57,6 +57,14 @@ export interface IStorage {
 
   // Additional invoice operations
   getInvoicesByEmail(email: string): Promise<Invoice[]>;
+
+  // Dashboard operations
+  getOwnerDashboardSummary(): Promise<{
+    newInquiries: number;
+    activeProjects: number;
+    totalRevenue: number;
+    pendingRevenue: number;
+  }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -239,6 +247,48 @@ export class DatabaseStorage implements IStorage {
     }
     // Then get all invoices for that client
     return await db.select().from(invoices).where(eq(invoices.clientId, client.id)).orderBy(desc(invoices.createdAt));
+  }
+
+  // Dashboard operations
+  async getOwnerDashboardSummary(): Promise<{
+    newInquiries: number;
+    activeProjects: number;
+    totalRevenue: number;
+    pendingRevenue: number;
+  }> {
+    // Count inquiries by status
+    const [newInquiriesResult] = await db
+      .select({ count: count() })
+      .from(contactInquiries)
+      .where(eq(contactInquiries.status, "new"));
+    
+    const [activeProjectsResult] = await db
+      .select({ count: count() })
+      .from(contactInquiries)
+      .where(eq(contactInquiries.status, "contacted"));
+
+    // Calculate total revenue from paid invoices
+    const [totalRevenueResult] = await db
+      .select({ 
+        total: sql<number>`COALESCE(SUM(${invoices.amount}::numeric), 0)`
+      })
+      .from(invoices)
+      .where(eq(invoices.status, "paid"));
+
+    // Calculate pending revenue from sent invoices
+    const [pendingRevenueResult] = await db
+      .select({ 
+        total: sql<number>`COALESCE(SUM(${invoices.amount}::numeric), 0)`
+      })
+      .from(invoices)
+      .where(eq(invoices.status, "sent"));
+
+    return {
+      newInquiries: newInquiriesResult?.count || 0,
+      activeProjects: activeProjectsResult?.count || 0,
+      totalRevenue: Number(totalRevenueResult?.total || 0),
+      pendingRevenue: Number(pendingRevenueResult?.total || 0),
+    };
   }
 }
 
