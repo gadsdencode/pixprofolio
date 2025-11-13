@@ -44,6 +44,7 @@ export interface IStorage {
   getPortfolioItemsByCategory(category: string): Promise<PortfolioItem[]>;
   getPortfolioItemsByClientId(clientId: number): Promise<PortfolioItem[]>;
   getFeaturedPortfolioItems(): Promise<PortfolioItem[]>;
+  getPortfolioCategories(): Promise<string[]>;
   createPortfolioItem(item: InsertPortfolioItem): Promise<PortfolioItem>;
   updatePortfolioItem(id: number, item: Partial<InsertPortfolioItem>): Promise<PortfolioItem>;
   deletePortfolioItem(id: number): Promise<void>;
@@ -184,6 +185,14 @@ export class DatabaseStorage implements IStorage {
 
   async getFeaturedPortfolioItems(): Promise<PortfolioItem[]> {
     return await db.select().from(portfolioItems).where(eq(portfolioItems.featured, 1)).orderBy(portfolioItems.displayOrder);
+  }
+
+  async getPortfolioCategories(): Promise<string[]> {
+    // Get distinct categories using SQL DISTINCT
+    const result = await db
+      .selectDistinct({ category: portfolioItems.category })
+      .from(portfolioItems);
+    return result.map((row) => row.category);
   }
 
   async createPortfolioItem(portfolioItem: InsertPortfolioItem): Promise<PortfolioItem> {

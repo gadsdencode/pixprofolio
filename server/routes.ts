@@ -345,6 +345,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get distinct portfolio categories (public endpoint)
+  app.get("/api/portfolio/categories", async (req, res) => {
+    try {
+      const categories = await storage.getPortfolioCategories();
+      res.json(categories);
+    } catch (error: any) {
+      console.error("API Error:", error);
+      res.status(500).json({ 
+        success: false, 
+        error: "An internal server error occurred." 
+      });
+    }
+  });
+
   // Get all contact inquiries for owner
   app.get("/api/contact-inquiries", isAuthenticated, async (req, res) => {
     try {

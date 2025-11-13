@@ -19,10 +19,10 @@ interface PortfolioItem {
 export default function Portfolio() {
   const [selectedCategory, setSelectedCategory] = useState("All");
 
-  // Fetch all portfolio items for category extraction
-  const { data: allPortfolioItems = [] } = useQuery<PortfolioItem[]>({
-    queryKey: ["/api/portfolio", "all"],
-    queryFn: () => fetch("/api/portfolio").then((res) => res.json()),
+  // Fetch distinct categories from API (lightweight query)
+  const { data: portfolioCategories = [] } = useQuery<string[]>({
+    queryKey: ["/api/portfolio/categories"],
+    queryFn: () => fetch("/api/portfolio/categories").then((res) => res.json()),
   });
 
   // Fetch filtered portfolio items from API based on selected category
@@ -37,8 +37,8 @@ export default function Portfolio() {
     },
   });
 
-  // Extract unique categories from all portfolio items
-  const categories = ["All", ...Array.from(new Set(allPortfolioItems.map((item) => item.category)))];
+  // Prepend "All" to categories list
+  const categories = ["All", ...portfolioCategories];
 
   return (
     <Layout>
