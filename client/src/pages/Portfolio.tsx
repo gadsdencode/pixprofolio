@@ -19,18 +19,26 @@ interface PortfolioItem {
 export default function Portfolio() {
   const [selectedCategory, setSelectedCategory] = useState("All");
 
-  // Fetch portfolio items from API
-  const { data: portfolioItems = [], isLoading } = useQuery<PortfolioItem[]>({
-    queryKey: ["/api/portfolio"],
+  // Fetch all portfolio items for category extraction
+  const { data: allPortfolioItems = [] } = useQuery<PortfolioItem[]>({
+    queryKey: ["/api/portfolio", "all"],
+    queryFn: () => fetch("/api/portfolio").then((res) => res.json()),
   });
 
-  const filteredItems =
-    selectedCategory === "All"
-      ? portfolioItems
-      : portfolioItems.filter((item) => item.category === selectedCategory);
+  // Fetch filtered portfolio items from API based on selected category
+  const { data: portfolioItems = [], isLoading } = useQuery<PortfolioItem[]>({
+    queryKey: ["/api/portfolio", selectedCategory],
+    queryFn: () => {
+      const url =
+        selectedCategory === "All"
+          ? "/api/portfolio"
+          : `/api/portfolio?category=${selectedCategory}`;
+      return fetch(url).then((res) => res.json());
+    },
+  });
 
-  // Extract unique categories from portfolio items
-  const categories = ["All", ...Array.from(new Set(portfolioItems.map((item) => item.category)))];
+  // Extract unique categories from all portfolio items
+  const categories = ["All", ...Array.from(new Set(allPortfolioItems.map((item) => item.category)))];
 
   return (
     <Layout>
@@ -64,13 +72,13 @@ export default function Portfolio() {
             <div className="flex justify-center items-center py-12">
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             </div>
-          ) : filteredItems.length === 0 ? (
+          ) : portfolioItems.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-muted-foreground">No portfolio items found.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {filteredItems.map((item) => (
+              {portfolioItems.map((item) => (
                 <Card
                   key={item.id}
                   className="overflow-hidden hover:scale-105 transition-transform duration-300 cursor-pointer"

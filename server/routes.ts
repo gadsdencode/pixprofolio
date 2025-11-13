@@ -325,7 +325,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all portfolio items (public endpoint)
   app.get("/api/portfolio", async (req, res) => {
     try {
-      const items = await storage.getAllPortfolioItems();
+      const category = req.query.category as string | undefined;
+      const items = category
+        ? await storage.getPortfolioItemsByCategory(category)
+        : await storage.getAllPortfolioItems();
       res.json(items);
     } catch (error: any) {
       console.error("Error fetching portfolio items:", error);
